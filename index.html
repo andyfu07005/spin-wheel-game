@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎰 幸运大转盘</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🎰 幸运大转盘 🎰</h1>
+        
+        <div class="wheel-container">
+            <!-- 指针 -->
+            <div class="pointer">
+                <div class="pointer-triangle"></div>
+            </div>
+            
+            <!-- 转盘 -->
+            <div class="wheel" id="wheel">
+                <div class="wheel-inner" id="wheelInner">
+                    <!-- 奖品扇区将通过JS动态生成 -->
+                </div>
+            </div>
+            
+            <!-- 中心按钮 -->
+            <button class="spin-btn" id="spinBtn">
+                <span>开始</span>
+                <span>抽奖</span>
+            </button>
+        </div>
+        
+        <!-- 结果显示 -->
+        <div class="result-modal" id="resultModal">
+            <div class="result-content">
+                <div class="result-emoji" id="resultEmoji">🎉</div>
+                <h2 id="resultTitle">恭喜中奖！</h2>
+                <p id="resultText">你获得了：<span id="resultPrize"></span></p>
+                <button class="close-btn" id="closeBtn">确定</button>
+            </div>
+        </div>
+        
+        <!-- 设置面板 -->
+        <div class="settings-panel">
+            <h3>⚙️ 奖品设置</h3>
+            <div class="prize-list" id="prizeList">
+                <!-- 奖品列表将通过JS动态生成 -->
+            </div>
+            <div class="settings-buttons">
+                <button class="add-prize-btn" id="addPrizeBtn">+ 添加奖品</button>
+                <button class="reset-btn" id="resetBtn">重置默认</button>
+            </div>
+        </div>
+        
+        <!-- 历史记录 -->
+        <div class="history-panel">
+            <h3>📜 抽奖记录</h3>
+            <ul class="history-list" id="historyList">
+                <li class="empty">暂无记录</li>
+            </ul>
+            <button class="clear-history-btn" id="clearHistoryBtn">清空记录</button>
+        </div>
+    </div>
+    
+    <!-- 彩带效果容器 -->
+    <div class="confetti-container" id="confettiContainer"></div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
