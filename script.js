@@ -1,17 +1,22 @@
 // 默认奖品配置
 const defaultPrizes = [
-    { text: '一等奖 🎁', color: '#FF6B6B', emoji: '🎁' },
-    { text: '二等奖 🎉', color: '#4ECDC4', emoji: '🎉' },
-    { text: '三等奖 🎊', color: '#45B7D1', emoji: '🎊' },
-    { text: '幸运奖 🍀', color: '#96CEB4', emoji: '🍀' },
-    { text: '再接再厉 💪', color: '#FFEAA7', emoji: '💪' },
-    { text: '谢谢参与 🙏', color: '#DDA0DD', emoji: '🙏' },
-    { text: '再来一次 🔄', color: '#98D8C8', emoji: '🔄' },
-    { text: '神秘大奖 🎭', color: '#F7DC6F', emoji: '🎭' }
+    { text: '一等奖 🎁', color: '#FF6B6B', emoji: '🎁', weight: 5 },
+    { text: '二等奖 🎉', color: '#4ECDC4', emoji: '🎉', weight: 8 },
+    { text: '三等奖 🎊', color: '#45B7D1', emoji: '🎊', weight: 12 },
+    { text: '幸运奖 🍀', color: '#96CEB4', emoji: '🍀', weight: 15 },
+    { text: '再接再厉 💪', color: '#FFEAA7', emoji: '💪', weight: 20 },
+    { text: '谢谢参与 🙏', color: '#DDA0DD', emoji: '🙏', weight: 25 },
+    { text: '再来一次 🔄', color: '#98D8C8', emoji: '🔄', weight: 30 },
+    { text: '神秘大奖 🎭', color: '#F7DC6F', emoji: '🎭', weight: 10 }
 ];
 
 // 状态管理
 let prizes = JSON.parse(localStorage.getItem('wheelPrizes')) || [...defaultPrizes];
+// 确保所有奖品都有weight字段（向后兼容）
+prizes = prizes.map(prize => ({
+    ...prize,
+    weight: prize.weight || 10  // 默认权重为10
+}));
 let history = JSON.parse(localStorage.getItem('wheelHistory')) || [];
 let isSpinning = false;
 let currentRotation = 0;

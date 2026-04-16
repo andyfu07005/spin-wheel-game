@@ -289,6 +289,40 @@ h1 {
     border-color: #667eea;
 }
 
+.weight-controls {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    min-width: 150px;
+}
+
+.weight-controls label {
+    font-size: 12px;
+    color: #666;
+    white-space: nowrap;
+}
+
+.weight-input {
+    width: 50px;
+    padding: 4px 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 12px;
+    text-align: center;
+}
+
+.weight-input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.probability-display {
+    font-size: 12px;
+    color: #667eea;
+    font-weight: bold;
+    min-width: 40px;
+}
+
 .delete-btn {
     padding: 6px 12px;
     border: none;
