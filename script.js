@@ -10,24 +10,27 @@ const defaultPrizes = [
     { text: '神秘大奖 🎭', color: '#F7DC6F', emoji: '🎭', weight: 10 }
 ];
 
-// 扇形路径生成函数（带间隔和圆润边缘）
+// 扇形路径生成函数（简单的三角形扇形）
 function getSectorPath(angle, gap = 2) {
-    const r = 100; // 百分比
-    const gapRad = gap * Math.PI / 180; // 间隔角度转弧度
-    const startAngle = gap / 2; // 从半个间隔开始
-    const endAngle = angle - gap / 2; // 结束于角度减去半个间隔
+    // 创建一个简单的三角形扇形
+    // 扇形从中心点(0,0)到外边缘的两个点
+    // 使用50%作为半径，确保扇形在元素内
+    // 考虑间隔gap
+    
+    const r = 50; // 半径百分比
+    const startAngle = gap / 2;
+    const endAngle = angle - gap / 2;
+    
     const startRad = startAngle * Math.PI / 180;
     const endRad = endAngle * Math.PI / 180;
     
-    // 使用圆弧命令创建完美扇形
-    const x1 = r * Math.cos(startRad);
-    const y1 = -r * Math.sin(startRad); // 注意：Y轴向下为正，所以取负
-    const x2 = r * Math.cos(endRad);
-    const y2 = -r * Math.sin(endRad);
-    const largeArcFlag = (angle - gap) <= 180 ? 0 : 1;
+    const x1 = 50 + r * Math.cos(startRad);
+    const y1 = 50 - r * Math.sin(startRad);
+    const x2 = 50 + r * Math.cos(endRad);
+    const y2 = 50 - r * Math.sin(endRad);
     
-    // 使用path()格式，更简洁且兼容性更好
-    return `path('M 0 0 L ${x1} ${y1} A ${r} ${r} 0 ${largeArcFlag} 1 ${x2} ${y2} Z')`;
+    // 多边形：中心点(50%, 50%) -> 起点 -> 终点 -> 回到中心
+    return `polygon(50% 50%, ${x1}% ${y1}%, ${x2}% ${y2}%)`;
 }
 
 // 状态管理
@@ -74,7 +77,7 @@ function renderWheel() {
         sector.className = 'sector';
         sector.style.transform = `rotate(${index * sectorAngle}deg)`;
         sector.style.background = prize.color;
-        const path = getSectorPath(sectorAngle, 8); // 8度间隔，使扇形更明显
+        const path = getSectorPath(sectorAngle, 2); // 2度间隔，使扇形更明显
         sector.style.clipPath = path;
 
         // 添加文字
@@ -259,7 +262,8 @@ function spin() {
     const spins = 5 + Math.floor(Math.random() * 5);
     const finalRotation = currentRotation + spins * 360 + targetRotation - (currentRotation % 360);
 
-    // 应用旋转
+    // 应用旋转（确保有过渡动画）
+    wheelInner.style.transition = 'transform 4s cubic-bezier(0.23, 1, 0.32, 1)';
     wheelInner.style.transform = `rotate(${finalRotation}deg)`;
     currentRotation = finalRotation;
 
@@ -360,11 +364,54 @@ function createConfetti() {
         confettiContainer.appendChild(confetti);
     }
 
-    // 3秒后清除彩带
-    setTimeout(() => {
-        confettiContainer.innerHTML = '';
-    }, 5000);
+}
+
+// 路灯照明效果
+function initStreetlight() {
+    const streetlightSwitch = document.getElementById('streetlightSwitch');
+    const streetlightInput = document.getElementById('streetlightInput');
+    const streetlightPanel = document.querySelector('.streetlight-panel');
+    
+    if (!streetlightSwitch || !streetlightInput || !streetlightPanel) {
+        console.warn('路灯元素未找到，跳过初始化');
+        return;
+    }
+    
+    // 更新路灯状态
+    function updateStreetlight() {
+        if (streetlightSwitch.checked) {
+            streetlightPanel.classList.add('streetlight-on');
+            streetlightInput.focus();
+            console.log('路灯已打开');
+        } else {
+            streetlightPanel.classList.remove('streetlight-on');
+            console.log('路灯已关闭');
+        }
+    }
+    
+    // 初始状态
+    updateStreetlight();
+    
+    // 监听开关变化
+    streetlightSwitch.addEventListener('change', updateStreetlight);
+    
+    // 输入框获得焦点时自动打开路灯
+    streetlightInput.addEventListener('focus', () => {
+        if (!streetlightSwitch.checked) {
+            streetlightSwitch.checked = true;
+            updateStreetlight();
+        }
+    });
+    
+    // 输入事件
+    streetlightInput.addEventListener('input', (e) => {
+        console.log('输入内容:', e.target.value);
+        // 可以根据输入内容添加动态效果
+    });
 }
 
 // 启动应用
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', () => {
+    init();
+    initStreetlight();
+});
