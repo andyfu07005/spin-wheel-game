@@ -10,19 +10,23 @@ const defaultPrizes = [
     { text: '神秘大奖 🎭', color: '#F7DC6F', emoji: '🎭', weight: 10 }
 ];
 
-// 扇形路径生成函数（带间隔）
-function getSectorPath(angle, gap = 1) {
+// 扇形路径生成函数（带间隔和圆润边缘）
+function getSectorPath(angle, gap = 2) {
     const r = 100; // 百分比
     const gapRad = gap * Math.PI / 180; // 间隔角度转弧度
     const startAngle = gap / 2; // 从半个间隔开始
     const endAngle = angle - gap / 2; // 结束于角度减去半个间隔
     const startRad = startAngle * Math.PI / 180;
     const endRad = endAngle * Math.PI / 180;
+    
+    // 使用圆弧命令创建完美扇形
     const x1 = r * Math.cos(startRad);
     const y1 = -r * Math.sin(startRad); // 注意：Y轴向下为正，所以取负
     const x2 = r * Math.cos(endRad);
     const y2 = -r * Math.sin(endRad);
     const largeArcFlag = (angle - gap) <= 180 ? 0 : 1;
+    
+    // 使用path()格式，更简洁且兼容性更好
     return `path('M 0 0 L ${x1} ${y1} A ${r} ${r} 0 ${largeArcFlag} 1 ${x2} ${y2} Z')`;
 }
 
@@ -70,7 +74,8 @@ function renderWheel() {
         sector.className = 'sector';
         sector.style.transform = `rotate(${index * sectorAngle}deg)`;
         sector.style.background = prize.color;
-        sector.style.clipPath = getSectorPath(sectorAngle, 0.5); // 0.5度间隔，使扇形更圆润
+        const path = getSectorPath(sectorAngle, 8); // 8度间隔，使扇形更明显
+        sector.style.clipPath = path;
 
         // 添加文字
         const text = document.createElement('div');
