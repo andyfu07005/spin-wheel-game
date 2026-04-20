@@ -10,6 +10,22 @@ const defaultPrizes = [
     { text: '神秘大奖 🎭', color: '#F7DC6F', emoji: '🎭', weight: 10 }
 ];
 
+// 扇形路径生成函数（带间隔）
+function getSectorPath(angle, gap = 1) {
+    const r = 100; // 百分比
+    const gapRad = gap * Math.PI / 180; // 间隔角度转弧度
+    const startAngle = gap / 2; // 从半个间隔开始
+    const endAngle = angle - gap / 2; // 结束于角度减去半个间隔
+    const startRad = startAngle * Math.PI / 180;
+    const endRad = endAngle * Math.PI / 180;
+    const x1 = r * Math.cos(startRad);
+    const y1 = -r * Math.sin(startRad); // 注意：Y轴向下为正，所以取负
+    const x2 = r * Math.cos(endRad);
+    const y2 = -r * Math.sin(endRad);
+    const largeArcFlag = (angle - gap) <= 180 ? 0 : 1;
+    return `path('M 0 0 L ${x1} ${y1} A ${r} ${r} 0 ${largeArcFlag} 1 ${x2} ${y2} Z')`;
+}
+
 // 状态管理
 let prizes = JSON.parse(localStorage.getItem('wheelPrizes')) || [...defaultPrizes];
 // 确保所有奖品都有weight字段（向后兼容）
@@ -53,17 +69,8 @@ function renderWheel() {
         const sector = document.createElement('div');
         sector.className = 'sector';
         sector.style.transform = `rotate(${index * sectorAngle}deg)`;
-        sector.style.background = `conic-gradient(from 0deg, ${prize.color} 0deg, ${adjustColor(prize.color, -20)} ${sectorAngle}deg)`;
-
-        // 创建扇区背景
-        const sectorBg = document.createElement('div');
-        sectorBg.style.position = 'absolute';
-        sectorBg.style.width = '100%';
-        sectorBg.style.height = '100%';
-        sectorBg.style.background = prize.color;
-        sectorBg.style.transform = `rotate(${sectorAngle}deg)`;
-        sectorBg.style.transformOrigin = 'right bottom';
-        sectorBg.style.clipPath = `polygon(100% 0, 100% 100%, ${100 * Math.tan(sectorAngle * Math.PI / 360)}% 100%)`;
+        sector.style.background = prize.color;
+        sector.style.clipPath = getSectorPath(sectorAngle, 0.5); // 0.5度间隔，使扇形更圆润
 
         // 添加文字
         const text = document.createElement('div');
@@ -76,24 +83,25 @@ function renderWheel() {
     });
 }
 
-// 调整颜色亮度
-function adjustColor(color, amount) {
-    const num = parseInt(color.replace('#', ''), 16);
-    const r = Math.min(255, Math.max(0, (num >> 16) + amount));
-    const g = Math.min(255, Math.max(0, ((num >> 8) & 0x00FF) + amount));
-    const b = Math.min(255, Math.max(0, (num & 0x00FF) + amount));
-    return `#${(r << 16 | g << 8 | b).toString(16).padStart(6, '0')}`;
-}
+
 
 // 渲染奖品列表
 function renderPrizeList() {
     prizeList.innerHTML = '';
+    // 计算总权重
+    const totalWeight = prizes.reduce((sum, prize) => sum + (prize.weight || 10), 0);
+    
     prizes.forEach((prize, index) => {
+        const probability = totalWeight > 0 ? ((prize.weight || 10) / totalWeight * 100).toFixed(1) : '0.0';
         const item = document.createElement('div');
         item.className = 'prize-item';
         item.innerHTML = `
             <div class="prize-color" style="background: ${prize.color}"></div>
             <input type="text" class="prize-input" value="${prize.text}" data-index="${index}">
+            <div class="weight-controls">
+                <input type="number" class="weight-input" min="1" max="100" value="${prize.weight || 10}" data-index="${index}" title="权重 (越高越容易中奖)">
+                <span class="probability-display">${probability}%</span>
+            </div>
             ${prizes.length > 2 ? `<button class="delete-btn" data-index="${index}">删除</button>` : ''}
         `;
         prizeList.appendChild(item);
@@ -106,6 +114,16 @@ function renderPrizeList() {
             prizes[index].text = e.target.value;
             savePrizes();
             renderWheel();
+        });
+    });
+
+    // 绑定权重输入事件
+    document.querySelectorAll('.weight-input').forEach(input => {
+        input.addEventListener('change', (e) => {
+            const index = parseInt(e.target.dataset.index);
+            prizes[index].weight = parseInt(e.target.value) || 10;
+            savePrizes();
+            renderPrizeList(); // 重新渲染以更新概率
         });
     });
 
@@ -173,7 +191,8 @@ function bindEvents() {
         prizes.push({
             text: `奖品 ${prizes.length + 1}`,
             color: randomColor,
-            emoji: '🎁'
+            emoji: '🎁',
+            weight: 10
         });
         savePrizes();
         renderWheel();
@@ -200,6 +219,23 @@ function bindEvents() {
     });
 }
 
+// 加权随机选择函数
+function weightedRandomSelection(items) {
+    // 计算总权重
+    const totalWeight = items.reduce((sum, item) => sum + (item.weight || 10), 0);
+    // 生成随机数
+    let random = Math.random() * totalWeight;
+    // 找到对应的奖品
+    for (let i = 0; i < items.length; i++) {
+        random -= items[i].weight || 10;
+        if (random <= 0) {
+            return i;
+        }
+    }
+    // 如果由于浮点数精度问题没有返回，返回最后一个
+    return items.length - 1;
+}
+
 // 抽奖逻辑
 function spin() {
     if (isSpinning) return;
@@ -207,8 +243,8 @@ function spin() {
     isSpinning = true;
     spinBtn.disabled = true;
 
-    // 随机选择奖品
-    const winningIndex = Math.floor(Math.random() * prizes.length);
+    // 根据权重随机选择奖品
+    const winningIndex = weightedRandomSelection(prizes);
     const sectorAngle = 360 / prizes.length;
 
     // 计算目标角度（指针指向顶部，需要调整）
